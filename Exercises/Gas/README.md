@@ -18,7 +18,7 @@ In order to generate storage diagram run the following command:
 
 `sol2uml storage ./contracts/ -c GasContract -o gasStorage.svg`
 
-
+```
 ·----------------------------------|---------------------------|--------------|-----------------------------·
 |       Solc version: 0.8.0        ·  Optimizer enabled: true  ·  Runs: 1000  ·  Block limit: 30000000 gas  │
 ···································|···························|··············|······························
@@ -40,3 +40,4 @@ In order to generate storage diagram run the following command:
 ·----------------------------------|-------------|-------------|--------------|---------------|-------------·
 
   9 passing (40s)
+```
