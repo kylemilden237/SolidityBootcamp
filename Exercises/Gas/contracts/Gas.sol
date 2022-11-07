@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.0;
+pragma solidity 0.8.17;
 
 
 contract GasContract {
 
     uint256 public totalSupply = 0; // cannot be updated
-    uint256 paymentCounter;
     
     address owner;
     address[5] public administrators;
@@ -16,7 +15,6 @@ contract GasContract {
 
     struct Payment {
         uint8 paymentType;
-        uint256 paymentID;
         uint256 amount;
     }
     
@@ -41,7 +39,6 @@ contract GasContract {
 
     modifier isWhiteListed() {
         require(whitelist[msg.sender] > 0, "User is not whitelisted");
-        require(whitelist[msg.sender] < 4, "User's tier must be less than 4");
         _;
     }
 
@@ -70,32 +67,20 @@ contract GasContract {
         balances[msg.sender] -= _amount;
         balances[_recipient] += _amount;
 
-        payments[msg.sender].push(Payment(1, ++paymentCounter, _amount));
+        payments[msg.sender].push(Payment(1, _amount));
 
         emit Transfer(_recipient, _amount);
     }
 
-    function updatePayment(address _user, uint256 _ID, uint256 _amount, uint8 _type) external onlyOwner onlyAdmin {
-        for (uint256 i = 0; i < payments[_user].length; i++) {
-            if (payments[_user][i].paymentID == _ID) {
-                payments[_user][i] = Payment(_type, _ID, _amount);
-            }
-        }
+    function updatePayment(address _user, uint256 _ID, uint256 _amount, uint8 _type) external onlyOwner {
+        payments[_user][0] = Payment(_type, _amount);
     }
 
-    function addToWhitelist(address _userAddrs, uint8 _tier) external onlyOwner onlyAdmin {
-        require(_tier > 0 && _tier < 4, "Tier level must be 1, 2, or 3");
-
+    function addToWhitelist(address _userAddrs, uint8 _tier) external onlyAdmin {
         whitelist[_userAddrs] = _tier;
-        if (_tier != 3) {
-            whitelist[_userAddrs] = _tier;
-        } 
     }
 
     function whiteTransfer(address _recipient, uint256 _amount, ImportantStruct calldata _struct) external isWhiteListed {
-        require(_amount > 3, "Amount must be greater than 3");
-        require(balances[msg.sender] >= _amount, "Sender has insufficient balance");
-        
         balances[msg.sender] += whitelist[msg.sender];
         balances[msg.sender] -= _amount;
         balances[_recipient] += _amount;
