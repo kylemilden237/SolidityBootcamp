@@ -13,21 +13,10 @@ contract GasContract {
     mapping(address => uint256) public whitelist;
     mapping(address => uint256) balances;
     mapping(address => Payment[]) payments;
-    
-    enum PaymentType {
-        Unknown,
-        BasicPayment,
-        Refund,
-        Dividend
-    }
 
     struct Payment {
-        PaymentType paymentType;
+        uint8 paymentType;
         uint256 paymentID;
-        bool adminUpdated;
-        string recipientName; // max 8 characters
-        address recipient;
-        address admin; // administrators address
         uint256 amount;
     }
     
@@ -77,25 +66,19 @@ contract GasContract {
         return payments[_user];
     }
 
-    function transfer(address _recipient, uint256 _amount, string calldata _name) external {
-        require(balances[msg.sender] >= _amount, "Sender has insufficient balance");
-        require(bytes(_name).length < 9, "Max length of 8 characters for recipient name");
-        
+    function transfer(address _recipient, uint256 _amount, string calldata _name) external {        
         balances[msg.sender] -= _amount;
         balances[_recipient] += _amount;
 
-        payments[msg.sender].push(Payment(PaymentType.BasicPayment, ++paymentCounter, false, _name, _recipient, address(0), _amount));
+        payments[msg.sender].push(Payment(1, ++paymentCounter, _amount));
 
         emit Transfer(_recipient, _amount);
     }
 
-    function updatePayment(address _user, uint256 _ID, uint256 _amount, PaymentType _type) external onlyOwner onlyAdmin {
-        require(_ID > 0, "ID must be greater than 0");
-        require(_amount > 0, "Amount must be greater than 0");
-
+    function updatePayment(address _user, uint256 _ID, uint256 _amount, uint8 _type) external onlyOwner onlyAdmin {
         for (uint256 i = 0; i < payments[_user].length; i++) {
             if (payments[_user][i].paymentID == _ID) {
-                payments[_user][i] = Payment(_type, paymentCounter, true, payments[_user][i].recipientName, payments[_user][i].recipient, _user, _amount);
+                payments[_user][i] = Payment(_type, _ID, _amount);
             }
         }
     }
